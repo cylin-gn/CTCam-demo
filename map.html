@@ -12,7 +12,7 @@
     
     <div id="legend">
         <div style=" font-size: 15px; background: cornsilk; width: 100%; ">
-                <input type="date" id="dateSelector" name="trip-start" value="2022-08-28" min="2022-08-28" max="2022-09-28">
+                <input type="date" id="dateSelector" name="trip-start" value="2022-08-28" min="2022-08-28" max="2022-09-26">
                 (Select a date, then click a marker to check the daily patterns)<br>
                 <img src="http://maps.google.com/mapfiles/ms/icons/blue-dot.png"> GCT Flow Only
                 <img src="http://maps.google.com/mapfiles/ms/icons/red-dot.png"> Both Flows Available
@@ -8661,13 +8661,33 @@ cam6,24.796701,120.960701`; // replace with your vehicle location CSV
         }
 
         function drawChart(location,chartContainer) {
+            console.log('pedestrianDataRows', pedestrianDataRows, date)
             var pedestrianFlow = pedestrianDataRows.filter(row => row.Datetime.startsWith(date)).map(row => parseInt(row[location.pedestrianId] || 0));
             var vehicleFlow = location.vehicleId ? vehicleDataRows.filter(row => row.Datetime.startsWith(date)).map(row => parseInt(row[location.vehicleId] || 0)) : null;
-
-            console.log(location, pedestrianFlow)
-            console.log(location.vehicleId)
-            var test = location.vehicleId ? vehicleDataRows.filter(row => row.Datetime.startsWith(date)): null;
-            console.log(test);
+            //console.log('1', pedestrianFlow)
+            
+            // Loop through each row in the pedestrianDataRows array.
+            pedestrianFlow = []
+            for (var i = 0; i < pedestrianDataRows.length; i++) {
+                var row = pedestrianDataRows[i];
+                //console.log(row,date)
+                // Check if the Datetime in the current row starts with the given date.
+                if (row.Datetime.startsWith(date)) {
+                    // If the pedestrianId exists in this row, parse its value as an integer and add to the array.
+                    // If the pedestrianId does not exist in this row, add 0 to the array.
+                    var value = row[location.pedestrianId];
+                    if (value) {
+                        pedestrianFlow.push(parseInt(value));
+                    } else {
+                        pedestrianFlow.push(0);
+                    }
+                }
+                //else
+                //    console.log('not')
+            }
+            
+            //var test = location.vehicleId ? vehicleDataRows.filter(row => row.Datetime.startsWith(date)): null;
+            //console.log(test);
 
 
             Highcharts.chart(chartContainer, {
@@ -8704,7 +8724,14 @@ cam6,24.796701,120.960701`; // replace with your vehicle location CSV
 
         document.getElementById('dateSelector').addEventListener('change', (event) => {
             date = event.target.value;
+            var disabledDates = ["2022-08-31", "2022-09-09", "2022-09-12"];
+            var selectedDate = date;
+
+            if (disabledDates.includes(selectedDate)) {
+                alert("Sorry, "+ date+" Data is not available.")
+            } 
         });
+
 
         window.onload = initMap;
 
